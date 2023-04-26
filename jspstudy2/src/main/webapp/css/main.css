@@ -1,0 +1,37 @@
+@charset "UTF-8";
+/*/jspstudy1/src/main/webapp/css/main.css*/
+
+body {background-color: #FAFAA0;
+	
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+th, td {
+	border: 1px solid #bcbcbc;
+	text-align: center;
+	padding: 5ps;
+}
+
+th {
+	background: #B2FA5C;
+	color: #353535;
+	font-size: 15px;
+}
+
+td {
+	background: #f2f2f2;
+}
+
+caption {
+	color: #111111;
+	font-size: 15px;
+	background: #ffffff;
+}
+
+input[type=text], input[type=password], textarea {
+	width: 98%;
+}

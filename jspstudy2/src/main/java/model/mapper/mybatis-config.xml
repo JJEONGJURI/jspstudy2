@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--/jspstudy2/src/main/java/model/mapper/mybatis-config.xml
+	mapper 패키지 생성
+	mybatis-config.xml 파일로 생성
+	xml 주석 html 주석이랑 같다
+	개인적으로 쓰는건 system 공용은 public
+	- : 국제 공인은 아니고 개인적으로 한건데 DTD 파일은 공인을 받았구나
+	
+ -->
+ <!DOCTYPE configuration PUBLIC "-//mybatis.org/DTD config 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-config.dtd">
+ <configuration> <!-- 루트태그 -->
+ 	<properties resource="model/mapper/mybatis.properties" /> <!--properties: 분리? -->
+
+	<!-- Connection 객체 -->
+ 	<environments default="development">
+ 		<environment id="development">
+ 			<transactionManager type="JDBC" />
+ 			<!--transaction 관련 함수 commit :적용 , rollback : 취소// TCL 이라고 부른다-->
+ 			<dataSource type="POOLED" >
+ 				<property name="driver" value="${driver}"/>
+ 				<property name="url" value="${url}"/>
+ 				<property name="username" value="${username}"/>
+ 				<property name="password" value="${password}"/>
+ 			</dataSource>
+ 		</environment>
+ 	</environments>
+ 	<!-- sql 구문들을 가진 파일 목록 -->
+ 	<mappers>
+ 	<!-- model.mapper 패키지의 인터페이스들을 sql 구문으로 등록(Main4) -->
+		<package name="model.mapper"/>    
+ 		<!-- sql로 된걸 xml로 설정 -->
+ 	</mappers>
+ </configuration>
