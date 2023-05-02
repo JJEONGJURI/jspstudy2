@@ -21,7 +21,9 @@ html, body, h1, h2, h3, h4, h5 {
 	font-family: "Raleway", sans-serif
 }
 </style>
-<script type="text/javascript" src="http://cdn.ckeditor.com/4.5.7/full/ckeditor.js"></script> <%--ckeditor 쓸수있는 이유 --%>
+<script type="text/javascript"
+	src="http://cdn.ckeditor.com/4.5.7/full/ckeditor.js"></script>
+<%--ckeditor 쓸수있는 이유 --%>
 <sitemesh:write property="head" />
 </head>
 <body class="w3-light-grey">
@@ -69,8 +71,7 @@ html, body, h1, h2, h3, h4, h5 {
 				class="w3-bar-item w3-button w3-padding-16 w3-hide-large w3-dark-grey w3-hover-black"
 				onclick="w3_close()" title="close menu"><i
 				class="fa fa-remove fa-fw"></i>&nbsp; Close Menu</a> <a
-				href="${path}/member/main"
-				class="w3-bar-item w3-button w3-padding"><i
+				href="${path}/member/main" class="w3-bar-item w3-button w3-padding"><i
 				class="fa fa-users fa-fw"></i>&nbsp; 회원관리</a> <a
 				href="${path}/board/list?boardid=1"
 				class="w3-bar-item w3-button w3-padding<c:if test='${(boardid=="1")}'>w3-blue</c:if>"><i
@@ -81,6 +82,11 @@ html, body, h1, h2, h3, h4, h5 {
 				href="${path}/board/list?boardid=3"
 				class="w3-bar-item w3-button w3-padding<c:if test='${boardid=="3"}'>w3-blue</c:if>"><i
 				class="fa fa-bullseye fa-fw"></i>&nbsp; Q&A</a>
+		</div>
+		
+		<%-- ajax을 이용하여 환율 정보 출력 --%>
+		<div class="w3-content" >
+			<div id="exchange" ></div>
 		</div>
 	</nav>
 
@@ -115,20 +121,15 @@ html, body, h1, h2, h3, h4, h5 {
 			<!-- mybatis환경이고 모델2환경으로 접근할거임 밑에꺼 -->
 			<hr>
 			<div>
-				<span id="si">
-					<select name="si" onchange="getText('si')">
+				<span id="si"> <select name="si" onchange="getText('si')">
 						<option value="">시도를 선택하세요</option>
-					</select>
-				</span>
-				<span id="gu">
-					<select name="gu" onchange="getText('gu')">
+				</select>
+				</span> <span id="gu"> <select name="gu" onchange="getText('gu')">
 						<option value="">구군을 선택하세요</option>
-					</select>
-				</span>
-				<span id="dong">
-					<select name="dong">
+				</select>
+				</span> <span id="dong"> <select name="dong">
 						<option value="">동리을 선택하세요</option>
-					</select>
+				</select>
 				</span>
 			</div>
 		</footer>
@@ -136,8 +137,8 @@ html, body, h1, h2, h3, h4, h5 {
 		<!-- End page content -->
 	</div>
 	<!--밑부분은 제이쿼리 쓸수있다 -->
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
 	<script>
 		// Get the Sidebar
@@ -163,18 +164,25 @@ html, body, h1, h2, h3, h4, h5 {
 			overlayBg.style.display = "none";
 		}
 	</script>
-<%--우리가 해야하는 스크립트 제이쿼리 --%>
+	<%--우리가 해야하는 스크립트 제이쿼리 --%>
 
-<script type="text/javascript">
+	<script type="text/javascript">
 	$(function(){
+		//ajax을 이용하여 환율 데이터 조회하기
+		exchangeRate();
+		
+		//ajax을 이용하여 시도 데이터를 조회하기
 		let divid;
 		let si;
 		$.ajax({
 			url : "${path}/ajax/select",
 			//ajax으로 보낸건 사이트매쉬 안됨
 			//사이트매쉬 걸려있으면 빼줘야함
-			success : function(arr) {
+			success : function(data) {
+				//data : ["서울특별시","부산광역시",...] //자바스크립트에서 []은 배열이다.
+				let arr = JSON.parse(data)
 				$.each(arr,function(i,item){
+					//<select name="si" 인 태그 선택
 					$("select[name=si]").append(function(){
 						return "<option>"+item+"</option>"
 					})
@@ -185,7 +193,55 @@ html, body, h1, h2, h3, h4, h5 {
 			}
 		})
 	})
-
+	function getText(name) { //si : 시도 선택, gu : 구군 선택
+		let city = $("select[name='si']").val()
+		let gun = $("select[name='gu']").val()
+		let disname;
+		let toptext='구군을 선택하세요'
+		let params = ''
+		if(name=='si') {
+			params = "si=" + city.trim()
+			disname = "gu"
+		} else if(name=='gu') {
+			params = "si=" + city.trim()+"&gu="+gun.trim()
+			disname = "dong"
+			toptext = '동리를 선택하세요'
+		} else {
+			return 
+		}
+		$.ajax({
+			url : "${path}/ajax/select",
+			type : "POST",
+			data :  params,
+			success : function(data){
+				console.log(data)
+				let arr = JSON.parse(data)
+				$("select[name="+disname+"] option").remove() 
+				$("select[name="+disname+"]").append(function(){
+					return "<option value=''>"+toptext+"</option>" // 구군을 선택하세요
+				})
+				//구에 밑에 데이터를 넣어줌
+				$.each(arr,function(i,item){ 
+				$("select[name="+disname+"]").append(function(){
+					return "<option>"+item+"</option>"
+				})	
+				})
+			},
+			error : function(e) {
+				alert("서버오류:"+e.status)
+			}
+		})	
+	}
+	function exchangeRate() {
+		$.ajax("${path}/ajax/exchange",{
+			success : function(data) {
+				$("#exchange").html(data) //요청된 내용을 #exchange에 넣어라
+			},
+			error : function(e) {
+				alert("환율조회시 서버 오류 : " + e.status)
+			}
+		})
+	}
 </script>
 </body>
 </html>
