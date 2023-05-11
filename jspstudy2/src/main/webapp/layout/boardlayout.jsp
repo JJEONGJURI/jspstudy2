@@ -83,10 +83,10 @@ html, body, h1, h2, h3, h4, h5 {
 				class="w3-bar-item w3-button w3-padding<c:if test='${boardid=="3"}'>w3-blue</c:if>"><i
 				class="fa fa-bullseye fa-fw"></i>&nbsp; Q&A</a>
 		</div>
-		
+
 		<%-- ajax을 이용하여 환율 정보 출력 --%>
-		<div class="w3-content" >
-			<div id="exchange" ></div>
+		<div class="w3-content">
+			<div id="exchange"></div>
 		</div>
 	</nav>
 
@@ -105,6 +105,24 @@ html, body, h1, h2, h3, h4, h5 {
 				<b>공공데이터 융합 자바/스프링 개발자 양성과정(GDJ62)</b>
 			</h5>
 		</header>
+		<div class="w3-row-padding w3-margin-bottom">
+			<div class="w3-half">
+				<div class="w3-container w3-padding-16">
+					<div id="piecontainer"
+						style="width: 80%; border: 1px solid #ffffff">
+						<canvas id="canvas1" style="width: 100%"></canvas>
+					</div>
+				</div>
+			</div>
+			<div class="w3-half">
+				<div class="w3-container w3-padding-16">
+					<div id="barontainer" style="width: 80%; border: 1px solid #ffffff">
+						<canvas id="canvas2" style="width: 100%"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<div class="w3-panel">
 			<sitemesh:write property="body" />
 		</div>
@@ -165,9 +183,21 @@ html, body, h1, h2, h3, h4, h5 {
 		}
 	</script>
 	<%--우리가 해야하는 스크립트 제이쿼리 --%>
-
-	<script type="text/javascript">
+	<script type="text/javascript"
+		src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+<script type="text/javascript">
+	let randomColorFactor = function() {
+		return Math.round(Math.random() * 255)
+	}
+	let randomColor = function(opa) {
+		return "rgba("+ randomColorFactor() + ","
+				+randomColorFactor() + ","
+				+randomColorFactor() + ","
+				+ (opa || '.3') + ")"
+	}
 	$(function(){
+		piegraph(); //작성자별 게시물 등록 건수
+		bargraph(); //작성일별 게시물 등록 건수
 		//ajax을 이용하여 환율 데이터 조회하기
 		exchangeRate();
 		
@@ -193,6 +223,116 @@ html, body, h1, h2, h3, h4, h5 {
 			}
 		})
 	})
+	function piegraph() {
+		$.ajax("${path}/ajax/graph1",{ //서버로 요청해주는 url 
+			success : function(data) {
+				//data : 서버에서 응답한 데이터
+				//{writer:'이름1',cnt:갯수}
+				pieGraphPrint(data); //밑에있는 함수랑 같은거임 안에 적어도됨
+			},
+			error : function(e) {
+				alert("서버오류:"+e.status)
+			}
+			
+		})
+		
+	}
+	function bargraph() {
+		$.ajax("${path}/ajax/graph2",{
+			success : function(data) {
+				barGraphPrint(data);
+			},
+			error : function(e) {
+				alert("서버오류:" + e.status)
+			}
+		})
+	}
+	function pieGraphPrint(data) { //위에 적어도 됨
+		console.log(data) //데이터 어떻게 받았는지 콘솔에 보여줌 [{writer:'이름1',cnt:갯수},{writer:'이름1',cnt:갯수},...]
+		let rows = JSON.parse(data) //JSON 형태로 데이터 가져옴 >> 서버단에서 JSON형태로 보낼거다
+		//rows : JSON 객체. 배열객체
+		let writers=[] //x축의 내용
+		let datas=[]
+		let colors = []
+	 	$.each(rows,function(i,item) {
+	 		writers[i] = item.writer
+			datas[i] = item.cnt
+			colors[i] = randomColor(1); //랜덤칼라
+	 	})
+	 	let config = {
+			type : 'pie',
+			data : {
+				datasets : [{
+					data  : datas,
+					backgroundColor : colors
+				}],
+				labels : writers
+			},
+			options : { //파이그래프에 맞도록 옵션
+				responsive : true,
+				legend : {position : 'top'},
+				title : {
+					display : true,
+					text : '게시물 작성자별 등록 건수',
+					position : "bottom"
+				}
+			}
+		}
+		let ctx = document.getElementById("canvas1").getContext("2d") //canvas1에 그려줘...
+		new Chart (ctx,config)
+	}
+	
+	function barGraphPrint(data) {
+		console.log(data)
+	//[{"regdate":"2023-04-07","cnt":8},{"regdate":"2023-04-06","cnt":10},...]
+		let rows = JSON.parse(data)
+		let regdates = []
+		let datas = []
+		let colors = []
+		$.each(rows,function(i,item) {
+			regdates[i] = item.regdate
+			datas[i] = item.cnt
+			colors[i] = randomColor(1)
+		})
+		let chartData = {
+			labels : regdates,
+			datasets : [{
+				type : "line",
+				borderWidth : 2,
+				borderColor : colors,
+				label : '건수',
+				fill : false,
+				data : datas
+			},{
+				type : 'bar',
+				label : '건수',
+				backgroundColor : colors,
+				data : datas
+				
+			}]
+		}
+		let config = {
+			type : 'bar',
+			data : chartData,
+			options : {
+				responsive : true,
+				title : {display : true,
+					text : '최근 7일 게시판 등록건수',
+					position : 'bottom'
+				},
+				legend : {diplay : false},
+				scales : {
+					xAxes : [{display : true, stacked:true}],
+					yAxes : [{display : true, stacked:true}]
+				}
+			}
+			
+		}
+		//config 끝나는 곳에 그래프 그려야함
+		let ctx = document.getElementById("canvas2").getContext("2d")
+		new Chart(ctx,config)
+	}
+	
 	function getText(name) { //si : 시도 선택, gu : 구군 선택
 		let city = $("select[name='si']").val()
 		let gun = $("select[name='gu']").val()

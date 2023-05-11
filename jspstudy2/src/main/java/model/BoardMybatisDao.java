@@ -148,6 +148,34 @@ public class BoardMybatisDao {
 		}
 		return false;
 	}
+	public List<Map<String, Object>> boardgraph() {
+		SqlSession session = MybatisConnection.getConnection();
+		List<Map<String,Object>> list = null;
+		try {
+			//[{컬럼명1:컬럼의값1,컬럼명2:컬럼값2,...},{....}]
+			//[{writer=홍길동,cnt=7},{writer=김삿갓,cnt=5},...]
+			list = session.getMapper(cls).graph(); //그래프함수 실행해
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			MybatisConnection.close(session);
+		}
+		return list;
+	}
+	public List<Map<String, Object>> boardgraph2() {
+		SqlSession session = MybatisConnection.getConnection();
+		List<Map<String,Object>> list = null;
+		try {
+			//[{컬럼명1:컬럼의값1,컬럼명2:컬럼값2,...},{....}]
+			//[{writer=홍길동,cnt=7},{writer=김삿갓,cnt=5},...]
+			list = session.getMapper(cls).graph2(); //그래프함수 실행해
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			MybatisConnection.close(session);
+		}
+		return list;
+	}
 	
 } //클래스 종료
 
